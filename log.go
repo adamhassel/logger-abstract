@@ -16,7 +16,7 @@ type Standard interface {
 }
 
 // Advanced is an interface with commonly used log level methods.
-type Advanced interface {
+type Leveled interface {
 	Standard
 
 	Debug(args ...interface{})
@@ -39,8 +39,7 @@ type Advanced interface {
 // Contextual is an interface that allows context addition to a log statement before
 // calling the final print (message/level) method.
 type Contextual interface {
-	Advanced
+	Leveled
 
-	WithField(key string, value interface{}) Advanced
-	WithFields(fields ...interface{}) Advanced
+	With(fields ...interface{}) Advanced
 }
