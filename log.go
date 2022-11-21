@@ -1,6 +1,8 @@
 package log
 
-// Standard is the interface used by Go's standard library's log package.
+// Standard is the interface used by Go's standard library's log package, except
+// the Print functions, since those are often omitted by loggers. For a version
+// that includes that, see thr "Extended" versions.
 type Standard interface {
 	Fatal(args ...interface{})
 	Fatalf(format string, args ...interface{})
@@ -9,13 +11,18 @@ type Standard interface {
 	Panic(args ...interface{})
 	Panicf(format string, args ...interface{})
 	Panicln(args ...interface{})
+}
+
+// StandardExtended is like Standard, but also with print functions. The stdlib logger implements StandardExtended.
+type StandardExtended interface {
+	Standard
 
 	Print(args ...interface{})
 	Printf(format string, args ...interface{})
 	Println(args ...interface{})
 }
 
-// Advanced is an interface with commonly used log level methods.
+// Leleved is an interface with commonly used log level methods.
 type Leveled interface {
 	Standard
 
@@ -41,5 +48,18 @@ type Leveled interface {
 type Contextual interface {
 	Leveled
 
-	With(fields ...interface{}) Advanced
+	With(fields ...interface{}) Leveled
+}
+
+// LeveledExtended extends Leveled with Print-methods
+type LeveledExtended interface {
+	StandardExtended
+	Leveled
+}
+
+// ContextualExtended extends Contextual with Print-methods
+type ContextualExtended interface {
+	LeveledExtended
+
+	With(fields ...interface{}) LeveledExtended
 }
