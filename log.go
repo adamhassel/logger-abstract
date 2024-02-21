@@ -1,5 +1,10 @@
 package log
 
+// Logger is the basic interface that logs a message with a level. This is separate, since many loggers don't actually implement this method.
+type Logger interface {
+	Log(l Level, args ...interface{})
+}
+
 // Standard is the interface used by Go's standard library's log package, except
 // the Print functions, since those are often omitted by loggers. For a version
 // that includes that, see thr "Extended" versions.
@@ -62,4 +67,14 @@ type ContextualExtended interface {
 	LeveledExtended
 
 	With(fields ...interface{}) LeveledExtended
+}
+
+type ContextualLogger interface {
+	Logger
+	Contextual
+}
+
+type ContextualExtendedLogger interface {
+	Logger
+	ContextualExtended
 }
