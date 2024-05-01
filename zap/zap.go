@@ -24,15 +24,15 @@ type Logger struct {
 	*zap.SugaredLogger
 }
 
-func NewDevLogger() log.ContextualExtendedLogger {
-	return New(DEV)
+func NewDevLogger(dest zapcore.WriteSyncer) log.ContextualExtendedLogger {
+	return New(DEV, dest)
 }
 
-func NewProdLogger() log.ContextualExtendedLogger {
-	return New(PROD)
+func NewProdLogger(dest zapcore.WriteSyncer) log.ContextualExtendedLogger {
+	return New(PROD, dest)
 }
 
-func New(kind Kind) log.ContextualExtendedLogger {
+func New(kind Kind, dest zapcore.WriteSyncer) log.ContextualExtendedLogger {
 	var l Logger
 	var z *zap.Logger
 	var err error
@@ -56,13 +56,17 @@ func New(kind Kind) log.ContextualExtendedLogger {
 		ConsoleSeparator:    " ",
 	}
 
+	if dest == nil {
+		dest = os.Stderr
+	}
+
 	switch kind {
 	case DEV:
 		z, err = zap.NewDevelopment()
 	case PROD:
 		z, err = zap.NewProduction()
 	case CONSOLE:
-		z = zap.New(zapcore.NewCore(zapcore.NewConsoleEncoder(encoderCfg), os.Stdout, zap.DebugLevel))
+		z = zap.New(zapcore.NewCore(zapcore.NewConsoleEncoder(encoderCfg), dest, zap.DebugLevel))
 	}
 	if err != nil {
 		panic(err)
@@ -120,4 +124,17 @@ func (l Logger) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func (l Logger) SetOutput(io.Writer) {}
+// SetOutput will change the output of the logger. Hopefully. Once day. Right now it does nothing.
+// TODO: Implement it. Duh.
+func (l Logger) SetOutput(o io.Writer) {
+	_ = zapcore.AddSync(o)
+}
+
+// ws returns a zapcore.WriteSyncer pointing to a file
+func ws(filename string) (zapcore.WriteSyncer, error) {
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND, 0644)
+	if err != nil {
+		return nil, err
+	}
+	return zapcore.AddSync(file), nil
+}
